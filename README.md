@@ -1,80 +1,65 @@
-### 🥗 食物辨識與 AIGC 智能營養助手 (Food AI Agent)
-本專案為 Taica AIGC 課程 專題實作，旨在展示如何將「深度學習影像辨識」與「大語言模型 (LLM)」結合。透過 CNN 模型辨識上傳的食物影像，並由 AI Agent 自動生成營養分析與美食文案。
+### 🥗 AI 食物辨識與智能營養評論 Agent (Taica AIGC 專題)
+### 📌 專案簡介 (ABSTRACT)
+本專案實作一個結合 深度學習 (Deep Learning) 與 生成式 AI (AIGC) 的智能食物分析系統。系統核心採用 MobileNetV2 卷積神經網絡進行影像辨識，並延伸開發「多模態 Agent」功能。當使用者上傳食物照片後，系統不僅能準確分類，還能透過 Google Gemini API 扮演專業營養師，自動生成營養分析與社群媒體美食文案，展示了從辨識（Recognition）到生成（Generation）的完整 AI 應用鏈。
 
-### 🚀 專案亮點
+### 🚀 核心功能與技術實作
+影像辨識引擎 (DL)：使用預訓練的 MobileNetV2 模型，針對上傳影像進行特徵提取與 1000 種以上的物體分類。
 
-深度學習整合：利用 MobileNetV2 進行高效能食物影像分類。
+智能文案 Agent (AIGC)：串接 Gemini-Pro 模型，根據辨識標籤進行脈絡化創作，生成包含營養資訊與幽默風格的推薦文字。
 
-AIGC 延伸應用：串接 Google Gemini API，根據辨識結果進行文本創作。
-
-雲端部署優化：針對 Streamlit Cloud 無 GPU 環境，採用 tensorflow-cpu 與模型量化技術解決部署問題。
-
-安全性設計：使用 Streamlit Secrets 管理 API Key，避免機密流出。
+部署優化 (GPU Issue)：針對 Streamlit Cloud 的硬體限制，本專案放棄使用昂貴的 GPU 資源，改採用 tensorflow-cpu 進行推論，並透過 @st.cache_resource 優化模型加載速度。
 
 ### 🛠️ 技術棧 (Tech Stack)
-前端介面: Streamlit
+核心語言: Python 3.11
 
-深度學習框架: TensorFlow / Keras (MobileNetV2)
+深度學習: TensorFlow 2.x (CPU 部署版本)
 
-AIGC 引擎: Google Gemini Pro API
+網頁框架: Streamlit
 
-部署平台: Streamlit Cloud / GitHub
+生成式 AI: Google Generative AI (Gemini API)
 
-### 📂 檔案結構
-``` Plaintext
+雲端平台: GitHub + Streamlit Cloud
+
+### 📂 專案檔案結構
+```Plaintext
 
 .
-├── app.py              # 系統主程式 (包含 DL 推論與 Agent 邏輯)
-├── requirements.txt    # 預設套件清單 (已優化為 CPU 版本)
-└── README.md           # 專案說明文件
-
+├── .streamlit/
+│   └── secrets.toml    # 本地端 API Key 管理 (已加入 .gitignore)
+├── app.py              # 整合 DL 與 AIGC 的主程式
+├── requirements.txt    # 雲端部署套件清單 (優化 GPU 相容性)
+├── ABSTRACT.md         # 專題摘要 300 字
+└── README.md           # 本說明文件
 ```
-### 📝 實作步驟
+### 🔧 安裝與部署指南
+1. 解決 GPU 與環境問題
+在部署至 Streamlit Cloud 時，請確保 requirements.txt 使用以下配置以避免 GPU 報錯：
 
-1. 影像辨識 (Deep Learning)
-系統使用在 ImageNet 上預訓練的 MobileNetV2 模型。選擇此模型的原因是其參數精簡，適合在不具備專用 GPU 的 Streamlit Cloud 環境下運行。
+```Plaintext
 
-2. AIGC Agent 開發
-當模型辨識出食物標籤（如：pizza, sushi）後，該標籤會作為輸入傳送至 Gemini API。
-
-Prompt 策略：設定 Agent 角色為「專業營養師與美食評論家」。
-
-輸出內容：包含食物介紹、預估熱量及一段社群媒體文案。
-
-3. 部署 (Deployment)
-GPU Issue 解決方案：在 requirements.txt 中使用 tensorflow-cpu 替代完整版 TensorFlow，減少部署時的記憶體佔用。
-
-Vercel 參考：本專案亦參考了 Vercel 的部署邏輯進行環境變數配置。
-
-⚙️ 如何在本機執行
-複製倉庫:
-
-```Bash
-
-git clone https://github.com/你的用戶名/你的專案名.git
+streamlit
+tensorflow-cpu
+pillow
+numpy
+google-generativeai
 ```
-安裝依賴:
-
-```Bash
-
-pip install -r requirements.txt
-```
-設定 API Key: 在專案根目錄建立 .streamlit/secrets.toml 並填入：
+2. 安全性設定 (Secrets)
+本專案不將 API Key 上傳至 GitHub。請在 Streamlit Cloud 的後台 Settings -> Secrets 中填入：
 
 ```Ini, TOML
 
-GEMINI_API_KEY = "你的_API_KEY"
+GEMINI_API_KEY = "你的_Gemini_API_Key"
 ```
-啟動 App:
+### 💬 Agent 開發過程對話紀錄 (摘要)
+問題: 如何在無 GPU 環境部署大型深度學習模型？
 
-```Bash
+對策: 經由與 AI 夥伴討論，決定採用 MobileNetV2 輕量化模型，並將 tensorflow 更換為 tensorflow-cpu 以節省 80% 的安裝體積。
 
-streamlit run app.py
-```
-### 📊 專題心得
-透過本次 Taica AIGC 課程實作，我深入理解了如何將模型從本地環境推向生產環境（Production）。特別是在處理 Streamlit GPU 限制時，學會了如何優化模型選擇與環境配置。此外，將 CNN 與 LLM 結合的過程，讓我看見了 AIGC 如何為傳統人工智慧應用增值。
+問題: 如何提升 Agent 輸出的專業度？
 
-🔗 相關連結
-Streamlit App: [點此開啟你的 App 連結]
+對策: 透過 Prompt Engineering，為 Gemini 設定「專業美食評論家」的角色，並強制要求輸出包含營養成分與 IG 文案。
 
-Taica 課程官網: https://taicatw.net/fall-114/
+🔗 連結
+GitHub 倉庫: [請在此填入你的 GitHub 網址]
+
+Streamlit Demo: [請在此填入你的 Streamlit.app 網址]
