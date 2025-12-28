@@ -5,21 +5,21 @@ from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_i
 from tensorflow.keras.preprocessing import image
 import numpy as np
 from PIL import Image
-import google.generativeai as genai
 import streamlit as st
 
 # ================= 1. 配置 AIGC Agent (Gemini) =================
 # 請在這裡填入你的 API KEY
 from google import genai
-import os
+
 
 client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 
-def generate_food_report(food_name_en):
+def generate_food_report(food_name):
     prompt = f"""
-    Please write a detailed food report about {food_name_en},
-    including origin, ingredients, nutrition, and cultural background.
-    """
+你是一個專業的美食評論家。
+影像辨識模型判斷這是一份「{food_name}」。
+請用 100 字以內介紹它的特色，並列出主要營養成分。
+"""
 
     response = client.models.generate_content(
         model="gemini-1.5-flash",
@@ -28,11 +28,7 @@ def generate_food_report(food_name_en):
 
     return response.text
 
-def generate_food_report(food_name):
-    """這就是 Agent 的功能：根據 DL 辨識結果進行 AIGC 創作"""
-    prompt = f"你是一個專業的美食評論家。剛才影像辨識模型偵測到這是一份「{food_name}」。請寫一段 100 字以內的美味介紹，並標註它的主要營養成分。"
-    response = llm.generate_content(prompt)
-    return response.text
+
 
 # ================= 2. 載入深度學習模型 (方法一) =================
 @st.cache_resource
