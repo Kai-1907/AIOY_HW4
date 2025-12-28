@@ -12,8 +12,8 @@ import json
 def generate_food_report(food_name):
     api_key = st.secrets["GEMINI_API_KEY"]
     
-    # 這是目前全球通用的標準正式版網址，避開所有 beta 測試通道的穩定性問題
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key={api_key}"
+    
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-pro-1.0:generateContent?key={api_key}"
 
     
     headers = {'Content-Type': 'application/json'}
