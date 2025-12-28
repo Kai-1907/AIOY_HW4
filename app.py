@@ -10,9 +10,23 @@ import streamlit as st
 
 # ================= 1. 配置 AIGC Agent (Gemini) =================
 # 請在這裡填入你的 API KEY
-os.environ["GOOGLE_API_USE_MTLS"] = "never"
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-llm = genai.GenerativeModel("models/gemini-1.0-pro")
+from google import genai
+import os
+
+client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+
+def generate_food_report(food_name_en):
+    prompt = f"""
+    Please write a detailed food report about {food_name_en},
+    including origin, ingredients, nutrition, and cultural background.
+    """
+
+    response = client.models.generate_content(
+        model="gemini-1.5-flash",
+        contents=prompt
+    )
+
+    return response.text
 
 def generate_food_report(food_name):
     """這就是 Agent 的功能：根據 DL 辨識結果進行 AIGC 創作"""
