@@ -10,7 +10,7 @@ import streamlit as st
 # ================= 1. 配置 AIGC Agent (Gemini) =================
 # 請在這裡填入你的 API KEY
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-llm = genai.GenerativeModel(model_name='models/gemini-1.5-flash')
+llm = genai.GenerativeModel('gemini-1.5-flash')
 
 def generate_food_report(food_name):
     """這就是 Agent 的功能：根據 DL 辨識結果進行 AIGC 創作"""
