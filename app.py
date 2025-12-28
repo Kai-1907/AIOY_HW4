@@ -1,34 +1,43 @@
+import os
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input, decode_predictions
 from tensorflow.keras.preprocessing import image
 import numpy as np
 from PIL import Image
-import google.generativeai as genai  # 改用最穩定的 SDK 結構
+import requests
+import json
 
-# ================= 1. 配置 Gemini AI =================
-# 從 Secrets 讀取 Key 並進行初始化設定
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-
+# ================= 1. 配置 AIGC Agent (極簡 Web API 版) =================
 def generate_food_report(food_name):
+    api_key = st.secrets["GEMINI_API_KEY"]
+    
+    # 使用「最新且最穩定」的無後綴正式網址，強行突破 404 限制
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    
+    headers = {'Content-Type': 'application/json'}
+    payload = {
+        "contents": [{
+            "parts": [{
+                "text": f"你是一個專業的美食評論家。辨識結果是「{food_name}」。請寫一段 100 字以內的美味介紹，並標註主要營養成分。"
+            }]
+        }]
+    }
+    
     try:
-        # 使用 GenerativeModel 結構，這是目前最不容易報 404 的寫法
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # 使用更底層的 data=json.dumps 確保格式正確
+        response = requests.post(url, headers=headers, data=json.dumps(payload), timeout=10)
+        result = response.json()
         
-        prompt = f"你是一個專業的美食評論家。影像辨識模型判斷這是一份「{food_name}」。請用 100 字以內介紹它的特色，並列出主要營養成分。"
-        
-        response = model.generate_content(prompt)
-        return response.text
+        if 'candidates' in result:
+            return result['candidates'][0]['content']['parts'][0]['text']
+        else:
+            # 這是我們打破鬼打牆的關鍵：如果失敗，直接印出「整串」Google 的原始回應
+            return f"AI 報錯詳情：{json.dumps(result, ensure_ascii=False)}"
     except Exception as e:
-        # 如果 1.5-flash 還是不行，自動降級嘗試 gemini-pro (確保一定有回應)
-        try:
-            model_backup = genai.GenerativeModel('gemini-pro')
-            response = model_backup.generate_content(prompt)
-            return response.text
-        except Exception as e2:
-            return f"AI 報告生成失敗。錯誤訊息：{str(e2)}"
+        return f"連線異常：{str(e)}"
 
-# ================= 2. 載入深度學習模型 (MobileNetV2) =================
+# ================= 2. 載入深度學習模型 =================
 @st.cache_resource
 def load_dl_model():
     return MobileNetV2(weights='imagenet')
@@ -36,8 +45,8 @@ def load_dl_model():
 dl_model = load_dl_model()
 
 # ================= 3. Streamlit 介面設計 =================
-st.title("🍔 食物辨識智能 Agent (穩定修復版)")
-st.write("上傳照片進行辨識，並由 AI 撰寫延伸報告。")
+st.title("🍔 食物辨識智能 Agent (終極修復版)")
+st.write("這是一個繞過 SDK 限制的版本，希望能打破目前的連線問題。")
 
 uploaded_file = st.file_uploader("選擇一張圖片...", type=["jpg", "jpeg", "png"])
 
@@ -56,12 +65,10 @@ if uploaded_file is not None:
     preds = dl_model.predict(x)
     decoded_preds = decode_predictions(preds, top=1)[0]
     food_name_en = decoded_preds[0][1]
-    confidence = decoded_preds[0][2]
     
-    st.success(f"辨識結果：{food_name_en} (信心度: {confidence:.2%})")
+    st.success(f"辨識結果：{food_name_en}")
     
-    # 呼叫 AI Agent
-    with st.spinner('AI 正在撰寫美食報告...'):
+    with st.spinner('AI 正在嘗試最後的連線...'):
         report = generate_food_report(food_name_en)
-        st.subheader("🤖 AI Agent 美食報告")
+        st.subheader("🤖 AI Agent 報告")
         st.write(report)
