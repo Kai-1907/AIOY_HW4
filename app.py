@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input, decode_predictions
@@ -9,6 +10,7 @@ import streamlit as st
 
 # ================= 1. 配置 AIGC Agent (Gemini) =================
 # 請在這裡填入你的 API KEY
+os.environ["GOOGLE_API_USE_MTLS"] = "never"
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 llm = genai.GenerativeModel('gemini-1.5-flash')
 
