@@ -13,8 +13,9 @@ def generate_food_report(food_name):
     api_key = st.secrets["GEMINI_API_KEY"]
     
     # 修正方案：改走 v1beta 管道，這通常能解決 "model not found for v1" 的問題
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-    
+    # 替換 app.py 裡的這一行
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
+
     headers = {'Content-Type': 'application/json'}
     payload = {
         "contents": [{
