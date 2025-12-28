@@ -11,11 +11,13 @@ import streamlit as st
 import requests
 import json
 
-# ================= 1. 配置 AIGC Agent (直接使用 API) =================
+# ================= 1. 配置 AIGC Agent (直接使用 Web API) =================
 def generate_food_report(food_name):
+    # 直接從 Secrets 讀取 Key
     api_key = st.secrets["GEMINI_API_KEY"]
-    # 直接使用正式版 v1 API 路徑，避開 SDK 的 v1beta 錯誤
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
+    
+    # 強制指定正式版 v1 網址，徹底解決 v1beta 找不到模型的問題
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
     
     headers = {'Content-Type': 'application/json'}
     payload = {
@@ -29,10 +31,10 @@ def generate_food_report(food_name):
     try:
         response = requests.post(url, headers=headers, data=json.dumps(payload))
         result = response.json()
-        # 取得回傳的文字內容
+        # 解析回傳文字
         return result['candidates'][0]['content']['parts'][0]['text']
     except Exception as e:
-        return f"AI 報告生成失敗：{str(e)}"
+        return f"AI 報告生成失敗，請檢查 API Key 或網路連線。錯誤訊息: {str(e)}"
 
 
 
