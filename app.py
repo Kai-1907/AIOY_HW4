@@ -5,40 +5,27 @@ from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_i
 from tensorflow.keras.preprocessing import image
 import numpy as np
 from PIL import Image
-import requests
-import json
+from google import genai
+import streamlit as st
+
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+
 
 # ================= 1. 配置 AIGC Agent (純 Web API 版) =================
 def generate_food_report(food_name):
-    api_key = st.secrets["GEMINI_API_KEY"]
-    
-    
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    prompt = f"""
+你是一個專業的美食評論家。
+影像辨識模型判斷這是一份「{food_name}」。
+請用 100 字以內介紹它的特色，並列出主要營養成分。
+"""
 
+    response = client.models.generate_content(
+        model="gemini-1.5-flash",
+        contents=prompt
+    )
 
-    
-    headers = {'Content-Type': 'application/json'}
-    payload = {
-        "contents": [{
-            "parts": [{
-                "text": f"你是一個專業的美食評論家。影像辨識結果是「{food_name}」。請寫一段 100 字以內的美味介紹，並列出主要營養成分。"
-            }]
-        }]
-    }
-    
-    try:
-        # 強制使用 json 格式發送
-        response = requests.post(url, headers=headers, data=json.dumps(payload))
-        result = response.json()
-        
-        if 'candidates' in result:
-            return result['candidates'][0]['content']['parts'][0]['text']
-        else:
-            # 這是 debug 的關鍵：如果還是失敗，請截圖給我看這裡印出的具體錯誤
-            error_msg = result.get('error', {}).get('message', '未知錯誤')
-            return f"AI 報告失敗：{error_msg} (Debug: {json.dumps(result)})"
-    except Exception as e:
-        return f"連線異常：{str(e)}"
+    return response.text
+
 
 # ================= 2. 載入深度學習模型 =================
 @st.cache_resource
