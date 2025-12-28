@@ -11,7 +11,7 @@ import streamlit as st
 # 請在這裡填入你的 API KEY
 from google import genai
 
-
+os.environ["GOOGLE_API_USE_MTLS"] = "never" 
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 def generate_food_report(food_name):
