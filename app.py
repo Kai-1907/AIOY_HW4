@@ -12,8 +12,8 @@ import json
 def generate_food_report(food_name):
     api_key = st.secrets["GEMINI_API_KEY"]
     
-    # 強制指定正式版 v1 網址，徹底避開 404 v1beta 錯誤
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
+    # 修正方案：改走 v1beta 管道，這通常能解決 "model not found for v1" 的問題
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
     
     headers = {'Content-Type': 'application/json'}
     payload = {
@@ -23,7 +23,7 @@ def generate_food_report(food_name):
             }]
         }]
     }
-    
+    # ... 其餘 requests 部分保持不變 ...
     try:
         response = requests.post(url, headers=headers, json=payload)
         result = response.json()
