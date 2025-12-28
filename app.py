@@ -1,44 +1,28 @@
-import os
+import os  # 確保第一行有這個
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input, decode_predictions
 from tensorflow.keras.preprocessing import image
 import numpy as np
 from PIL import Image
-import streamlit as st
+from google import genai  # 使用您偏好的新版 SDK
 
+# ================= 1. 配置 AIGC Agent (Gemini) =================
+# 強制指定版本，解決日誌中提到的 v1beta 衝突
+os.environ["GOOGLE_API_USE_MTLS"] = "never" 
 
-import requests
-import json
+# 修正：使用 st.secrets 讀取您設定的 key
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
-# ================= 1. 配置 AIGC Agent (直接使用 Web API) =================
 def generate_food_report(food_name):
-    api_key = st.secrets["GEMINI_API_KEY"]
-    # 這裡手動將網址改為 v1 正式版，避開日誌中提到的 v1beta 衝突
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
+    prompt = f"你是一個專業的美食評論家。影像辨識模型判斷這是一份「{food_name}」。請用 100 字以內介紹它的特色，並列出主要營養成分。"
     
-    headers = {'Content-Type': 'application/json'}
-    payload = {
-        "contents": [{
-            "parts": [{
-                "text": f"你是一個專業的美食評論家。影像辨識模型判斷這是一份「{food_name}」。請用 100 字以內介紹它的特色，並列出主要營養成分。"
-            }]
-        }]
-    }
-    
-    try:
-        response = requests.post(url, headers=headers, data=json.dumps(payload))
-        result = response.json()
-        
-        # 增加判斷邏輯，防止 'candidates' 找不到時崩潰
-        if 'candidates' in result and len(result['candidates']) > 0:
-            return result['candidates'][0]['content']['parts'][0]['text']
-        else:
-            # 如果失敗，印出完整的錯誤訊息方便排錯
-            return f"AI 報告生成失敗。API 回傳內容: {json.dumps(result)}"
-            
-    except Exception as e:
-        return f"連線失敗: {str(e)}"
+    # 這裡使用 1.5-flash，因為新 Key 絕對支援它
+    response = client.models.generate_content(
+        model="gemini-1.5-flash",
+        contents=prompt
+    )
+    return response.text
 
 
 
