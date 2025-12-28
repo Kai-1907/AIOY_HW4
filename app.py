@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input, decode_predictions
@@ -7,20 +6,21 @@ import numpy as np
 from PIL import Image
 import streamlit as st
 
-# ================= 1. 配置 AIGC Agent (Gemini) =================
-# 請在這裡填入你的 API KEY
-from google import genai
 
+# ================= 1. 配置 AIGC Agent (Gemini) =================
+from google import genai
+import os
+
+# 強制設定：解決 v1beta 找不到模型的 404 錯誤
 os.environ["GOOGLE_API_USE_MTLS"] = "never" 
+
+# 修正：直接讀取您在 Secrets 設定的 "GEMINI_API_KEY"
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 def generate_food_report(food_name):
-    prompt = f"""
-你是一個專業的美食評論家。
-影像辨識模型判斷這是一份「{food_name}」。
-請用 100 字以內介紹它的特色，並列出主要營養成分。
-"""
+    prompt = f"你是一個專業的美食評論家。影像辨識模型判斷這是一份「{food_name}」。請用 100 字以內介紹它的特色，並列出主要營養成分。"
 
+    # 確保呼叫時使用正確的模型名稱格式
     response = client.models.generate_content(
         model="gemini-1.5-flash",
         contents=prompt
