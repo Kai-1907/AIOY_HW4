@@ -1,20 +1,19 @@
-import os  # 確保第一行有這個
+import os
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input, decode_predictions
 from tensorflow.keras.preprocessing import image
 import numpy as np
 from PIL import Image
-from google import genai  # 使用您偏好的新版 SDK
-
-# ================= 1. 配置 AIGC Agent (Gemini) =================
-import requests # 務必在檔案最上方加上這行
+import requests
 import json
 
+# ================= 1. 配置 AIGC Agent (直接使用 Web API) =================
 def generate_food_report(food_name):
+    # 直接讀取您在 Secrets 設定的 KEY
     api_key = st.secrets["GEMINI_API_KEY"]
     
-    # 強制指定正式版 v1 路徑，避開日誌中報錯的 v1beta
+    # 強制指定正式版 v1 網址，徹底避開 v1beta 錯誤
     url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
     
     headers = {'Content-Type': 'application/json'}
@@ -30,14 +29,14 @@ def generate_food_report(food_name):
         response = requests.post(url, headers=headers, json=payload)
         result = response.json()
         
-        # 增加防呆判斷
         if 'candidates' in result:
             return result['candidates'][0]['content']['parts'][0]['text']
         else:
-            # 萬一失敗，直接印出 Google 官方給的錯誤原因
-            return f"AI 報告生成失敗：{result.get('error', {}).get('message', '請檢查 API 權限')}"
+            # 如果失敗，回傳 API 給出的具體錯誤訊息
+            error_msg = result.get('error', {}).get('message', '未知錯誤')
+            return f"AI 報告生成失敗：{error_msg}"
     except Exception as e:
-        return f"連線失敗：{str(e)}"
+        return f"連線異常：{str(e)}"
 
 
 # ================= 2. 載入深度學習模型 (方法一) =================
