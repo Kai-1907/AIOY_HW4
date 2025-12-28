@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input, decode_predictions
@@ -9,7 +10,7 @@ import streamlit as st
 
 # ================= 1. 配置 AIGC Agent (Gemini) =================
 from google import genai
-import os
+
 
 # 強制設定：解決 v1beta 找不到模型的 404 錯誤
 os.environ["GOOGLE_API_USE_MTLS"] = "never" 
