@@ -38,9 +38,19 @@ if uploaded_file is not None:
     st.image(img, caption='上傳的圖片', use_container_width=True)
     
     # 影像預處理
-    img_resized = img.resize((224, 224))
+    # 1. 確保圖片是 RGB 格式（處理有些 PNG 可能帶有透明層的問題）
+    img_rgb = img.convert('RGB')
+    
+    # 2. 調整大小
+    img_resized = img_rgb.resize((224, 224))
+    
+    # 3. 轉換為 array
     x = image.img_to_array(img_resized)
+    
+    # 4. 增加維度 (從 (224,224,3) 變成 (1,224,224,3))
     x = np.expand_dims(x, axis=0)
+    
+    # 5. 使用 MobileNetV2 專用的預處理函數
     x = preprocess_input(x)
 
     # 執行辨識
