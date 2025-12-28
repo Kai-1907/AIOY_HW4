@@ -2,5 +2,4 @@ tensorflow
 streamlit
 Pillow
 numpy
-requests
-google-genai
+google-generativeai
