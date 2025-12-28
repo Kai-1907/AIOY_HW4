@@ -2,4 +2,4 @@ tensorflow
 streamlit
 Pillow
 numpy
-google-genai>=0.3.0
+requests

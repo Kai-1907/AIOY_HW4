@@ -8,26 +8,31 @@ from PIL import Image
 import streamlit as st
 
 
-# ================= 1. 配置 AIGC Agent (Gemini) =================
-from google import genai
+import requests
+import json
 
-
-# 強制設定：解決 v1beta 找不到模型的 404 錯誤
-os.environ["GOOGLE_API_USE_MTLS"] = "never" 
-
-# 修正：直接讀取您在 Secrets 設定的 "GEMINI_API_KEY"
-client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
-
+# ================= 1. 配置 AIGC Agent (直接使用 API) =================
 def generate_food_report(food_name):
-    prompt = f"你是一個專業的美食評論家。影像辨識模型判斷這是一份「{food_name}」。請用 100 字以內介紹它的特色，並列出主要營養成分。"
-
-    # 確保呼叫時使用正確的模型名稱格式
-    response = client.models.generate_content(
-        model="gemini-1.0-pro",
-        contents=prompt
-    )
-
-    return response.text
+    api_key = st.secrets["GEMINI_API_KEY"]
+    # 直接使用正式版 v1 API 路徑，避開 SDK 的 v1beta 錯誤
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
+    
+    headers = {'Content-Type': 'application/json'}
+    payload = {
+        "contents": [{
+            "parts": [{
+                "text": f"你是一個專業的美食評論家。影像辨識模型判斷這是一份「{food_name}」。請用 100 字以內介紹它的特色，並列出主要營養成分。"
+            }]
+        }]
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        result = response.json()
+        # 取得回傳的文字內容
+        return result['candidates'][0]['content']['parts'][0]['text']
+    except Exception as e:
+        return f"AI 報告生成失敗：{str(e)}"
 
 
 
