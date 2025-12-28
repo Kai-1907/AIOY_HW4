@@ -12,27 +12,29 @@ import json
 def generate_food_report(food_name):
     api_key = st.secrets["GEMINI_API_KEY"]
     
-    # 修正方案：改走 v1beta 管道，這通常能解決 "model not found for v1" 的問題
-    # 替換 app.py 裡的這一行
-    # 替換 app.py 裡的這一行
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}"
+    # 這是目前全球通用的標準正式版網址，避開所有 beta 測試通道的穩定性問題
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
+    
     headers = {'Content-Type': 'application/json'}
     payload = {
         "contents": [{
             "parts": [{
-                "text": f"你是一個專業的美食評論家。辨識結果是「{food_name}」。請寫一段 100 字以內的美味介紹，並標註主要營養成分。"
+                "text": f"你是一個專業的美食評論家。影像辨識結果是「{food_name}」。請寫一段 100 字以內的美味介紹，並列出主要營養成分。"
             }]
         }]
     }
-    # ... 其餘 requests 部分保持不變 ...
+    
     try:
-        response = requests.post(url, headers=headers, json=payload)
+        # 強制使用 json 格式發送
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
         result = response.json()
+        
         if 'candidates' in result:
             return result['candidates'][0]['content']['parts'][0]['text']
         else:
-            error_msg = result.get('error', {}).get('message', 'API 回傳錯誤')
-            return f"AI 報告失敗：{error_msg}"
+            # 這是 debug 的關鍵：如果還是失敗，請截圖給我看這裡印出的具體錯誤
+            error_msg = result.get('error', {}).get('message', '未知錯誤')
+            return f"AI 報告失敗：{error_msg} (Debug: {json.dumps(result)})"
     except Exception as e:
         return f"連線異常：{str(e)}"
 
