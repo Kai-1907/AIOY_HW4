@@ -38,19 +38,19 @@ if uploaded_file is not None:
     st.image(img, caption='上傳的圖片', use_container_width=True)
     
     # 影像預處理
-    # 1. 確保圖片是 RGB 格式（處理有些 PNG 可能帶有透明層的問題）
+    # 1. 強制轉為 RGB (避免 PNG 的 4 通道問題)
     img_rgb = img.convert('RGB')
     
-    # 2. 調整大小
+    # 2. 調整大小為 MobileNetV2 要求的 224x224
     img_resized = img_rgb.resize((224, 224))
     
-    # 3. 轉換為 array
+    # 3. 轉為 Numpy 陣列
     x = image.img_to_array(img_resized)
     
-    # 4. 增加維度 (從 (224,224,3) 變成 (1,224,224,3))
+    # 4. 增加批次維度，從 (224, 224, 3) 變成 (1, 224, 224, 3)
     x = np.expand_dims(x, axis=0)
     
-    # 5. 使用 MobileNetV2 專用的預處理函數
+    # 5. 執行 MobileNetV2 的專屬預處理 (包含數值縮放)
     x = preprocess_input(x)
 
     # 執行辨識
