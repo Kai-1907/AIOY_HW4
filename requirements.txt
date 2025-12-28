@@ -1,5 +1,5 @@
+tensorflow
 streamlit
-tensorflow-cpu
-pillow
+Pillow
 numpy
-google-generativeai
+google-generativeai>=0.8.3
