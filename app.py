@@ -12,7 +12,7 @@ import streamlit as st
 # 請在這裡填入你的 API KEY
 os.environ["GOOGLE_API_USE_MTLS"] = "never"
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-llm = genai.GenerativeModel('gemini-pro')
+llm = genai.GenerativeModel("models/gemini-1.0-pro")
 
 def generate_food_report(food_name):
     """這就是 Agent 的功能：根據 DL 辨識結果進行 AIGC 創作"""
