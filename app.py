@@ -8,22 +8,36 @@ from PIL import Image
 from google import genai  # 使用您偏好的新版 SDK
 
 # ================= 1. 配置 AIGC Agent (Gemini) =================
-# 強制指定版本，解決日誌中提到的 v1beta 衝突
-os.environ["GOOGLE_API_USE_MTLS"] = "never" 
-
-# 修正：使用 st.secrets 讀取您設定的 key
-client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+import requests # 務必在檔案最上方加上這行
+import json
 
 def generate_food_report(food_name):
-    prompt = f"你是一個專業的美食評論家。影像辨識模型判斷這是一份「{food_name}」。請用 100 字以內介紹它的特色，並列出主要營養成分。"
+    api_key = st.secrets["GEMINI_API_KEY"]
     
-    # 這裡使用 1.5-flash，因為新 Key 絕對支援它
-    response = client.models.generate_content(
-        model="gemini-1.5-flash",
-        contents=prompt
-    )
-    return response.text
-
+    # 強制指定正式版 v1 路徑，避開日誌中報錯的 v1beta
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
+    
+    headers = {'Content-Type': 'application/json'}
+    payload = {
+        "contents": [{
+            "parts": [{
+                "text": f"你是一個專業的美食評論家。影像辨識模型判斷這是一份「{food_name}」。請用 100 字以內介紹它的特色，並列出主要營養成分。"
+            }]
+        }]
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        result = response.json()
+        
+        # 增加防呆判斷
+        if 'candidates' in result:
+            return result['candidates'][0]['content']['parts'][0]['text']
+        else:
+            # 萬一失敗，直接印出 Google 官方給的錯誤原因
+            return f"AI 報告生成失敗：{result.get('error', {}).get('message', '請檢查 API 權限')}"
+    except Exception as e:
+        return f"連線失敗：{str(e)}"
 
 
 # ================= 2. 載入深度學習模型 (方法一) =================
