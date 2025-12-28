@@ -22,7 +22,7 @@ def generate_food_report(food_name):
 
     # 確保呼叫時使用正確的模型名稱格式
     response = client.models.generate_content(
-        model="gemini-1.5-flash",
+        model="gemini-1.0-pro",
         contents=prompt
     )
 
